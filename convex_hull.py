@@ -18,7 +18,7 @@ os.chdir(ROOT_PATH)
 
 #Lake St. Clair area:bquxjob_fd3b890_191769c6ae5.csv
 #REMEMBER TO ADJUST THE OTHER LINE WITH THESE .CSVS
-sample=pd.read_csv(ROOT_PATH+"/bquxjob_289ad542_19170a4884f.csv")
+sample=pd.read_csv(ROOT_PATH+"/bquxjob_fd3b890_191769c6ae5.csv")
 
 #Miami:
 #/Users/dannyciaravino/Desktop/Workspace/territory_management/bquxjob_fd3b890_191769c6ae5.csv
@@ -39,16 +39,17 @@ Q3 = df.quantile(0.75)
 IQR = Q3 - Q1
 
 
-#Tukey’s fences = 3 (would be 1.5 if we were calculating outliers here)
+#Tukey’s fences = 4 (would be 1.5 if we were calculating outliers here)
+# Using 4 here for even more extreme cases
 #https://aakinshin.net/posts/tukey-outlier-probability/
 # Define outlier bounds
-lower_bound = Q1 - 3 * IQR
-upper_bound = Q3 + 3 * IQR
+lower_bound = Q1 - 4 * IQR
+upper_bound = Q3 + 4 * IQR
 
 # Filter out the outliers
-filtered_df = df[~((df < lower_bound) | (df > upper_bound)).any(axis=1)]
+outliers_removed_df = df[~((df < lower_bound) | (df > upper_bound)).any(axis=1)]
 
-print(filtered_df)
+print(outliers_removed_df)
 
 
 
@@ -56,15 +57,15 @@ print(filtered_df)
 geos_only_concat=geos_only
 geos_only_concat['concat']=(geos_only.iloc[:, 0].astype(str)+"_"+geos_only.iloc[:, 1].astype(str))
 geos_only_concat.columns=['long','lat','concat']
-outliers_only_concat=pd.DataFrame((filtered_df.iloc[:, 0].astype(str)+"_"+filtered_df.iloc[:, 1].astype(str)))
-outliers_only_concat.columns=['concat']
+core_points=pd.DataFrame((outliers_removed_df.iloc[:, 0].astype(str)+"_"+outliers_removed_df.iloc[:, 1].astype(str)))
+core_points.columns=['concat']
 
-outliers_removed=geos_only_concat[~geos_only_concat.concat.isin(outliers_only_concat.concat)]
+outliers_removed=geos_only_concat[~geos_only_concat.concat.isin(core_points.concat)]
 print("full_list")
 print(geos_only_concat)
-print("listofoutliers")
-print(outliers_only_concat)
-print("no outliers")
+print("outliers_removed")
+print(core_points)
+print("all outliers")
 print(outliers_removed)
 
 
@@ -74,8 +75,8 @@ print(outliers_removed)
 
 
 
-plt.scatter(outliers_removed.iloc[:, 0],outliers_removed.iloc[:, 1],color='black')
-plt.scatter(filtered_df.iloc[:, 0],filtered_df.iloc[:, 1],color='red')
+plt.scatter(outliers_removed.iloc[:, 0],outliers_removed.iloc[:, 1],color='red')
+plt.scatter(outliers_removed_df.iloc[:, 0],outliers_removed_df.iloc[:, 1],color='black')
 plt.show()
 
 # plt.show()
