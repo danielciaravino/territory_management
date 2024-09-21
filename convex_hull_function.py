@@ -41,6 +41,7 @@ def customer_centroids(input_data):
     keys=groups.groups.keys()
 
     territory_centroids=[]
+    territory_polygons=[]
 
 
     #print(keys)
@@ -71,6 +72,7 @@ def customer_centroids(input_data):
 
         # Filter out the outliers
         outliers_removed_df = df[~((df < lower_bound) | (df > upper_bound)).any(axis=1)]
+
         outliers_removed_df.to_csv(str(sales_territory)+'_no_out.csv')
         outliers_removed_df_geos_only=outliers_removed_df[['customer_longitude','customer_latitude']]
         hull=ConvexHull(outliers_removed_df_geos_only)
@@ -78,111 +80,19 @@ def customer_centroids(input_data):
         cy = np.mean(hull.points[hull.vertices,1])
         distinct_territory=territory_id.iloc[0]
         territory_centroids.append([distinct_territory,cx,cy])
+        #reset_index_table=outliers_removed_df_geos_only.reset_index()
         ##outliers_removed_df_geos_only=outliers_removed_df_geos_only.tolist()
+        #vertices_list=outliers_removed_df_geos_only[hull.vertices].to_list()
+        #print(reset_index_table)
+        #print("second")
+        #print("clear")
+        #print(reset_index_table.iloc[hull.vertices, :])
 
-    territory_centroids=pd.DataFrame(territory_centroids)
 
-    territory_centroids.to_csv(str(datetime.now())+'_territory_centroids.csv')
+    #territory_centroids=pd.DataFrame(territory_centroids)
 
+    #territory_centroids.to_csv(str(datetime.now())+'_territory_centroids.csv')
 
+#Run the below line on the sample for testing
 customer_centroids(sample)
-    #
-
-    # plt.plot(outliers_removed_df_geos_only[:,0], outliers_removed_df_geos_only[:,1], 'o')
-    # for simplex in hull.simplices:
-    #     plt.plot(outliers_removed_df_geos_only[simplex, 0], outliers_removed_df_geos_only[simplex, 1], 'k-')
-
-    # plt.plot(outliers_removed_df_geos_only[hull.vertices,0], outliers_removed_df_geos_only[hull.vertices,1], 'r--', lw=2)
-    # plt.plot(outliers_removed_df_geos_only[hull.vertices[0],0], outliers_removed_df_geos_only[hull.vertices[0],1], 'ro')
-    # plt.show()
-
-
-
-
-
-
-
-
-
-#     #Grab only the latitude and longitude values
-#     geos_only=input_data['sales_territory_id','customer_longitude','customer_latitude']
-#     geos_only=geos_only.to_numpy()
-
-#     #Create and plot a convex hull based on these points
-#     hull=ConvexHull(geos_only)
-
-#     plt.plot(geos_only[:,0], geos_only[:,1], 'o')
-#     for simplex in hull.simplices:
-#         plt.plot(geos_only[simplex, 0], geos_only[simplex, 1], 'k-')
-
-#     plt.plot(geos_only[hull.vertices,0], geos_only[hull.vertices,1], 'r--', lw=2)
-#     plt.plot(geos_only[hull.vertices[0],0], geos_only[hull.vertices[0],1], 'ro')
     
-#     #Calculate the centroid for each hull
-#     cx = np.mean(hull.points[hull.vertices,0])
-#     cy = np.mean(hull.points[hull.vertices,1])
-
-#     #List out the verteces
-#     verteces_list=geos_only[hull.vertices].tolist()
-
-#     #Return the verteces
-
-
-
-
-
-
-
-
-
-
-
-
-# geos_only=sample[['customer_longitude','customer_latitude']]
-# #geos_only=geos_only.to_numpy()
-
-# print(geos_only)
-
-# # Convert to DataFrame for easier manipulation
-# df = geos_only
-
-# # Calculate Q1 and Q3 for both dimensions
-# Q1 = df.quantile(0.25)
-# Q3 = df.quantile(0.75)
-# IQR = Q3 - Q1
-
-
-# #Tukey’s fences = 4 (would be 1.5 if we were calculating outliers here)
-# # Using 4 here for even more extreme cases
-# #https://aakinshin.net/posts/tukey-outlier-probability/
-# # Define outlier bounds
-# lower_bound = Q1 - 4 * IQR
-# upper_bound = Q3 + 4 * IQR
-
-# # Filter out the outliers
-# outliers_removed_df = df[~((df < lower_bound) | (df > upper_bound)).any(axis=1)]
-
-# print(outliers_removed_df)
-
-
-
-
-# geos_only_concat=geos_only
-# geos_only_concat['concat']=(geos_only.iloc[:, 0].astype(str)+"_"+geos_only.iloc[:, 1].astype(str))
-# geos_only_concat.columns=['long','lat','concat']
-# core_points=pd.DataFrame((outliers_removed_df.iloc[:, 0].astype(str)+"_"+outliers_removed_df.iloc[:, 1].astype(str)))
-# core_points.columns=['concat']
-
-# outliers_removed=geos_only_concat[~geos_only_concat.concat.isin(core_points.concat)]
-# print("full_list")
-# print(geos_only_concat)
-# print("outliers_removed")
-# print(core_points)
-# print("all outliers")
-# print(outliers_removed)
-
-
-
-# plt.scatter(outliers_removed.iloc[:, 0],outliers_removed.iloc[:, 1],color='red')
-# plt.scatter(outliers_removed_df.iloc[:, 0],outliers_removed_df.iloc[:, 1],color='black')
-# #plt.show()
