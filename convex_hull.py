@@ -82,29 +82,29 @@ plt.show()
 # plt.show()
 
 
-# hull=ConvexHull(geos_only)
+hull=ConvexHull(geos_only)
 
 
 
-# plt.plot(geos_only[:,0], geos_only[:,1], 'o')
-# for simplex in hull.simplices:
-#     plt.plot(geos_only[simplex, 0], geos_only[simplex, 1], 'k-')
+plt.plot(geos_only[:,0], geos_only[:,1], 'o')
+for simplex in hull.simplices:
+    plt.plot(geos_only[simplex, 0], geos_only[simplex, 1], 'k-')
 
-# plt.plot(geos_only[hull.vertices,0], geos_only[hull.vertices,1], 'r--', lw=2)
-# plt.plot(geos_only[hull.vertices[0],0], geos_only[hull.vertices[0],1], 'ro')
-# plt.show()
+plt.plot(geos_only[hull.vertices,0], geos_only[hull.vertices,1], 'r--', lw=2)
+plt.plot(geos_only[hull.vertices[0],0], geos_only[hull.vertices[0],1], 'ro')
+plt.show()
 
-# #print("divide")
-# #print(geos_only[hull.vertices])
-# as_list=geos_only[hull.vertices].tolist()
-# #print(as_list)
+#print("divide")
+#print(geos_only[hull.vertices])
+as_list=geos_only[hull.vertices].tolist()
+#print(as_list)
 
-# cx = np.mean(hull.points[hull.vertices,0])
-# cy = np.mean(hull.points[hull.vertices,1])
+cx = np.mean(hull.points[hull.vertices,0])
+cy = np.mean(hull.points[hull.vertices,1])
 
-# print("Centroid")
-# print (cx)
-# print (cy)
+print("Centroid")
+print (cx)
+print (cy)
 
 
 

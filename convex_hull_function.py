@@ -13,6 +13,12 @@ from sklearn.cluster import DBSCAN
 from collections import Counter
 from sklearn.cluster import KMeans
 from datetime import datetime
+from matplotlib.path import Path
+import numpy as np
+from shapely.geometry import MultiPolygon
+from shapely.geometry import Polygon
+from pandas_geojson.core import MultiPolygon as MP
+import geopandas
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT_PATH)
@@ -24,6 +30,13 @@ os.chdir(ROOT_PATH)
 
 #REMEMBER TO ADJUST THE OTHER LINE WAY DOWN IN THE CODE WITH THESE .CSVS (SEARCH AND REPALCE ALL IF CHANGING THE FILE)
 sample=pd.read_csv(ROOT_PATH+"/multiple_territories.csv")
+
+customers_to_test = [3059]#[4159,3077] 
+
+test_sample=sample[sample['sales_territory_id'].isin(customers_to_test)]
+test_sample_geos=[test_sample['customer_longitude'],test_sample['customer_latitude']]
+
+#print(test_sample)
 
 
 
@@ -51,7 +64,10 @@ def customer_centroids(input_data):
         latitudes=(groups.get_group(sales_territory)['customer_latitude'])
         customer_id=(groups.get_group(sales_territory)['customer_id'])
         territory_id=(groups.get_group(sales_territory)['sales_territory_id'])
+
+        #Create a data frame with each territory_id, customer and geos
         terr_and_geos=pd.DataFrame([territory_id,customer_id,longitudes,latitudes])
+        #Transpose the data for proper rows and columns
         terr_and_geos=terr_and_geos.transpose()
 
         #Write to cs to verify the file is as expected for each territory
@@ -73,13 +89,105 @@ def customer_centroids(input_data):
         # Filter out the outliers
         outliers_removed_df = df[~((df < lower_bound) | (df > upper_bound)).any(axis=1)]
 
-        outliers_removed_df.to_csv(str(sales_territory)+'_no_out.csv')
+        #outliers_removed_df.to_csv(str(sales_territory)+'_no_out.csv')
         outliers_removed_df_geos_only=outliers_removed_df[['customer_longitude','customer_latitude']]
         hull=ConvexHull(outliers_removed_df_geos_only)
         cx = np.mean(hull.points[hull.vertices,0])
         cy = np.mean(hull.points[hull.vertices,1])
         distinct_territory=territory_id.iloc[0]
         territory_centroids.append([distinct_territory,cx,cy])
+        territory_polygons.append([distinct_territory,hull.points[hull.vertices,0],hull.points[hull.vertices,1],hull,hull.points[hull.vertices]])
+        
+    #print(territory_centroids)
+    territory_centroids=pd.DataFrame(territory_centroids)
+    #territory_centroids.to_csv(str(sales_territory)+'_no_out.csv')
+    
+    
+
+
+    #Use the below code for timestamped data files
+    #territory_centroids.to_csv(str(datetime.now())+'_territory_centroids.csv')
+    
+    territory_polygons=pd.DataFrame(territory_polygons)
+    territory_polygons.columns=['terr','longs','lats','hull','path']
+    #territory_polygons2=np.vstack((territory_polygons.iloc[:, 1], territory_polygons.iloc[:, 2])).T
+    #print(territory_polygons)
+    #territory_polygons.to_csv('_polygons.csv')
+
+    iterator_check=[]
+
+    for index, row in territory_polygons.iterrows():
+        x=np.stack((row['longs'],row['lats']), axis=1)
+        iterator_check.append(x)
+
+    territory_polygons['coordinates']=iterator_check
+    #print(territory_polygons)
+    territory_polygons.to_csv('_polygons.csv')
+    #print(type(iterator_check))
+    #print(type(territory_polygons['coordinates'].tolist()))
+    #territory_polygons=pd.DataFrame(territory_polygons)
+    #print(territory_polygons)
+    return territory_polygons
+
+
+polys=customer_centroids(sample)
+
+testing=np.array(polys.iloc[:, 5]).tolist()
+#testing=tuple(testing)
+testing_ids=polys.iloc[:, 0]
+
+# print(polygons_out )
+# print(type(polygons_out ))
+
+
+
+#This works for shapely
+
+# Convert each polygon from numpy array to a tuple of tuples
+polygons = [tuple(map(tuple, poly)) for poly in testing]
+
+# Ensure each polygon is closed by repeating the first point at the end
+polygons = [poly + (poly[0],) for poly in polygons]  # Closing the polygons
+
+# Create the MultiPolygon
+multi_polygon = MultiPolygon([Polygon(poly) for poly in polygons])
+
+# Output to verify
+print()
+
+print(geopandas.GeoSeries(multi_polygon, index=testing_ids).__geo_interface__)
+
+## multipolygon = MP(multi_polygon,
+##                             properties=testing_ids
+##                     )
+## multipolygon
+
+
+
+
+
+
+
+
+#print(type(polys))
+#print(polys.iloc[:, 4])
+# print("boom")
+# a=polys.iloc[0:1, 4]
+# a=a.tolist()
+# print(a)
+# print(type(a))
+# quick=Path(a)
+# print("quck")
+# print(quick)
+# print(quick.contains_point((1,2)))
+# print("bang")
+#polys['path'].contains_point((1,2))
+
+
+
+
+
+
         #reset_index_table=outliers_removed_df_geos_only.reset_index()
         ##outliers_removed_df_geos_only=outliers_removed_df_geos_only.tolist()
         #vertices_list=outliers_removed_df_geos_only[hull.vertices].to_list()
@@ -93,6 +201,32 @@ def customer_centroids(input_data):
 
     #territory_centroids.to_csv(str(datetime.now())+'_territory_centroids.csv')
 
+
+
+
+
+
+
+
+
 #Run the below line on the sample for testing
-customer_centroids(sample)
+# customer_centroids(sample)
     
+
+
+
+
+
+
+
+
+# multipolygon = MP(geometry=[[[[-10.0, 10.0], [-10.0, -10.0], [10.0, -10.0], [10.0, 10.0], [-10.0, 10.0]]],[[[-20.0, 20.0], [-20.0, -20.0], [20.0, -20.0], [20.0, 20.0],[-20.0, 20.0]]]]
+#                     ,properties={'ID':1}
+#                     )
+# print(multipolygon)
+
+
+
+
+
+
