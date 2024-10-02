@@ -1,0 +1,10 @@
+
+plotly
+folium
+pandas
+dash 
+Dash
+geojson
+geopandas
+gunicorn
+dash_bootstrap_components
